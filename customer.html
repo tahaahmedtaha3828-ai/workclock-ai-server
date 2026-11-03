@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>صفحتك | TahaSite</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="config.js"></script><script src="store.js"></script></head>
+<body>
+<header><div class="container nav"><a class="logo" href="index.html">TahaSite</a><span style="color:var(--muted);font-size:14px">صفحة خاصة</span></div></header>
+<main class="container"><div class="order-card" id="box"></div></main>
+<footer><div class="container footer-row"><span>© 2026 TahaSite</span></div></footer>
+<script>
+const box=document.getElementById('box'),code=new URLSearchParams(location.search).get('id')||'';let PW='';
+function gate(){
+ box.innerHTML=`<h1>اكتب كلمة السر</h1><form id="g"><div class="field"><input id="pw" type="password" dir="ltr" required autocomplete="current-password" aria-label="كلمة السر"></div><p class="err" id="er"></p><button class="btn" type="submit">فتح الصفحة</button></form>`;
+ document.getElementById('g').onsubmit=async e=>{e.preventDefault();const er=document.getElementById('er');er.textContent='';
+  if(!READY){er.textContent='الموقع لسه مش متفعّل.';return}
+  PW=document.getElementById('pw').value;
+  const{data,error}=await sb.rpc('get_order',{p_code:code,p_password:PW});
+  if(error||!data)er.textContent='الكود أو كلمة السر غير صحيحة.';else show(data)};
+}
+function show(o){
+ const ok=o.status=='ok',msg=o.status=='expired'?'انتهى الاشتراك. تواصل مع م. طه علشان تجدده.':'الوصول للبرنامج موقوف حالياً. تواصل مع م. طه.';
+ box.innerHTML=`<p class="hello">أهلاً ${esc(o.customer)}</p><h1>${esc(o.project)}</h1>
+ <div class="order-row"><span>نوع الدفع</span><b>${PLANS[o.plan]}</b></div>
+ <div class="order-row"><span>السعر</span><b>${priceText(o.price,o.plan)}</b></div>`
+ +(o.end_date?`<div class="order-row"><span>ينتهي في</span><b dir="ltr">${esc(o.end_date)}</b></div>`:'')
+ +(ok?'<button class="btn" id="dl">تحميل البرنامج</button><div id="dlp"></div>':`<p class="err" style="font-size:15px;margin-top:22px">${msg}</p>`);
+ if(!ok)return;
+ document.getElementById('dl').onclick=async()=>{
+  sb.rpc('log_download',{p_code:code,p_password:PW}).then(()=>{},()=>{});
+  const btn=document.getElementById('dl');
+  if(o.order_file_path)download(fileUrl(o.order_file_path,o.order_file_name),o.order_file_name,btn);
+  else if(o.order_link)window.open(o.order_link,'_blank','noopener');
+  else if(o.project_file_path)download(fileUrl(o.project_file_path,o.project_file_name),o.project_file_name,btn);
+  else if(o.project_link)window.open(o.project_link,'_blank','noopener');
+  else alert('الملف غير متاح');
+ };
+}
+async function download(url,name,btn){
+ const box=document.getElementById('dlp');
+ box.innerHTML='<div class="dlbar"><i id="dlf"></i></div><p class="dltxt" id="dlt">جاري التحضير...</p>';
+ const f=document.getElementById('dlf'),t=document.getElementById('dlt');
+ btn.disabled=true;
+ try{
+  const res=await fetch(url);
+  if(!res.ok||!res.body)throw new Error('http '+res.status);
+  const total=+res.headers.get('Content-Length')||0,reader=res.body.getReader(),chunks=[];let got=0;
+  if(!total)f.classList.add('ind');
+  for(;;){
+   const{done,value}=await reader.read();if(done)break;
+   chunks.push(value);got+=value.length;
+   const mb=(got/1048576).toFixed(1);
+   if(total){const p=Math.floor(got/total*100);f.style.width=p+'%';t.textContent='جاري التحميل '+p+'%  ('+mb+' من '+(total/1048576).toFixed(1)+' ميجا)'}
+   else t.textContent='جاري التحميل... '+mb+' ميجا';
+  }
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(chunks));a.download=name||'program';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),60000);
+  f.classList.remove('ind');f.style.width='100%';t.textContent='تم التحميل 100% ✓ افتح الملف من مجلد التنزيلات';
+ }catch(e){
+  t.textContent='جاري التحميل العادي...';location.href=url;
+ }
+ btn.disabled=false;
+}
+gate();
+</script>
+</body></html>

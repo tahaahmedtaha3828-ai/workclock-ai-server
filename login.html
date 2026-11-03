@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>دخول الإدارة | TahaSite</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="config.js"></script><script src="store.js"></script></head>
+<body>
+<header><div class="container nav"><a class="logo" href="index.html">TahaSite</a></div></header>
+<main class="container"><div class="order-card"><h1>دخول الإدارة</h1>
+ <form id="f"><div class="field"><label>الإيميل</label><input id="em" type="email" required dir="ltr" autocomplete="username"></div><div class="field" style="margin-top:12px"><label>كلمة السر</label><input id="pw" type="password" required dir="ltr" autocomplete="current-password"></div><p class="err" id="er"></p><button class="btn" type="submit" style="margin-top:6px">دخول</button></form></div></main>
+<script>
+if(READY)sb.auth.getSession().then(({data})=>{if(data.session)location.href='admin.html'});
+document.getElementById('f').onsubmit=async e=>{e.preventDefault();if(!READY){alert('كمّل ملف config.js الأول');return}
+ const{error}=await sb.auth.signInWithPassword({email:em.value.trim(),password:pw.value});
+ if(error)er.textContent='الإيميل أو كلمة السر غير صحيحة.';else location.href='admin.html'};
+</script>
+</body></html>

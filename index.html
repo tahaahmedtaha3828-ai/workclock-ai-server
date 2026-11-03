@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>TahaSite | مساحة العملاء</title><link rel="stylesheet" href="style.css"></head>
+<body>
+<header><div class="container nav"><a class="logo" href="index.html">TahaSite</a><span style="color:var(--muted);font-size:14px">مساحة العملاء</span></div></header>
+<main>
+<section class="hero"><div class="container hero-grid">
+ <div>
+  <h1>برنامجك جاهز،<br>خده من صفحتك.</h1>
+  <p>اكتب الكود اللي وصلك من م. طه علشان تفتح صفحتك الخاصة، وتشوف تفاصيل برنامجك وتنزّله.</p>
+  <form class="access" id="f"><input id="code" required autocomplete="off" dir="ltr" placeholder="الصق الكود أو الرابط هنا" aria-label="كود الدخول"><button class="btn" type="submit">دخول</button></form>
+  <p class="access-hint">الكود خاص بيك أنت بس.</p>
+ </div>
+ <div class="ticket" aria-hidden="true"><div class="tk-top"><span class="dot"></span>جاهز للتحميل</div><h3>اسم البرنامج</h3><small>صفحة خاصة باسمك</small><div style="height:16px"></div><div class="tk-row"><span>نوع الدفع</span><b>اشتراك سنوي</b></div><div class="tk-row"><span>السعر</span><b>0,000 ج.م</b></div><div class="tk-btn">تحميل البرنامج</div></div>
+</div></section>
+<section class="steps"><div class="container"><ol>
+ <li><b>استلم الكود</b><span>هيوصلك من م. طه مع رابط صفحتك.</span></li>
+ <li><b>ادخله هنا</b><span>الصقه في الخانة فوق واضغط دخول.</span></li>
+ <li><b>نزّل برنامجك</b><span>هتلاقي التفاصيل وزرار التحميل.</span></li>
+</ol></div></section>
+</main>
+<footer><div class="container footer-row"><span>© 2026 TahaSite</span><a href="admin.html">الإدارة</a></div></footer>
+<script>
+document.getElementById('f').onsubmit=e=>{e.preventDefault();let v=document.getElementById('code').value.trim();const m=v.match(/[?&]id=([A-Za-z0-9]+)/);if(m)v=m[1];location.href='customer.html?id='+encodeURIComponent(v)};
+</script>
+</body></html>

@@ -1,0 +1,186 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>لوحة التحكم | TahaSite</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="config.js"></script><script src="store.js"></script></head>
+<body>
+<header><div class="container nav"><a class="logo" href="index.html">TahaSite</a><div class="acts"><a class="btn ghost" href="index.html">الصفحة الرئيسية</a><button class="btn ghost" id="out">خروج</button></div></div></header>
+<main class="container admin">
+ <nav class="side"><a href="#overview" data-v="overview">نظرة عامة</a><a href="#projects" data-v="projects">المشاريع</a><a href="#licenses" data-v="licenses">التراخيص</a></nav>
+ <div>
+  <section class="view" id="v-overview"><h1>نظرة عامة</h1><p class="sub">ملخص شغلك وآخر العملاء.</p>
+   <div class="strip"><div><small>المشاريع</small><strong id="s1">0</strong></div><div><small>العملاء</small><strong id="s2">0</strong></div><div><small>الاشتراكات النشطة</small><strong id="s3">0</strong></div><div><small>إجمالي المبالغ</small><strong id="s4">0</strong></div></div>
+   <div class="box"><h3>اشتراكات خلصت أو قربت تخلص (7 أيام)</h3><div id="al"></div></div>
+   <div class="box"><h3>آخر العملاء</h3><div class="table-wrap"><table class="table"><thead><tr><th>العميل</th><th>المشروع</th><th>القسم</th><th>الدفع</th><th>السعر</th></tr></thead><tbody id="ot"></tbody></table></div></div>
+  </section>
+  <section class="view" id="v-projects"><h1>المشاريع</h1><p class="sub">اكتب كل البيانات مرة واحدة، وهتتعمل صفحة العميل جاهزة بكود ورابط.</p>
+   <div class="box"><h3>مشروع جديد</h3>
+    <form id="pf" class="form-grid">
+     <div class="field"><label>اسم العميل</label><input name="customer" required></div>
+     <div class="field"><label>اسم المشروع</label><input name="name" list="pnames" required placeholder="مثال: نظام إدارة المخزون"><datalist id="pnames"></datalist></div>
+     <div class="field"><label>كلمة سر صفحة العميل</label><div class="pwrow"><input name="pass" required autocomplete="off" dir="ltr" placeholder="اكتب كلمة السر"><button class="mini" type="button" data-gen="1">توليد</button></div></div>
+     <div class="field"><label>القسم (لو جديد هتتعمل له صفحة لوحده)</label><input name="category" list="cats" required placeholder="مثال: برامج سطح المكتب"><datalist id="cats"></datalist></div>
+     <div class="field"><label>نوع الدفع</label><select name="plan"><option value="monthly">اشتراك شهري</option><option value="yearly">اشتراك سنوي</option><option value="once">شراء كامل (مرة واحدة)</option></select></div>
+     <div class="field"><label>السعر (ج.م)</label><input name="price" type="number" min="0" required></div>
+     <div class="field"><label>رقم الواتس (اختياري)</label><input name="phone" dir="ltr" placeholder="01012345678"></div>
+     <div class="field"><label>تاريخ انتهاء الاشتراك (فاضي = يتحسب تلقائي)</label><input name="end" type="date" dir="ltr"></div>
+     <div class="field"><label>وصف قصير</label><input name="desc"></div>
+     <div class="field"><label>ارفع ملف البرنامج من جهازك</label><input name="file" type="file"></div>
+     <div class="field"><label>أو حط رابط التحميل</label><input name="link" type="url" dir="ltr" placeholder="https://drive.google.com/..."></div>
+     <label class="check full"><input type="checkbox" name="mklic" checked> إنشاء ترخيص للبرنامج مع العميل (يتولّد كود تلصقه في شاشة التفعيل)</label>
+     <p class="hint full">لو اسم المشروع موجود قبل كده، هيتستخدم نفس الملف أو الرابط بتاعه ومش لازم ترفعه تاني.</p>
+     <div class="full"><button class="btn" type="submit">حفظ وإنشاء صفحة العميل</button></div>
+    </form></div>
+   <div class="box"><h3>كل المشاريع</h3><div class="table-wrap"><table class="table"><thead><tr><th>العميل</th><th>المشروع</th><th>القسم</th><th>الدفع</th><th>السعر</th><th>الرقم</th><th>الاشتراك</th><th>الوصول</th><th>التنزيلات</th><th>كلمة السر</th><th>كود الترخيص</th><th>إجراءات</th></tr></thead><tbody id="ct"></tbody></table></div></div>
+  </section>
+
+  <section class="view" id="v-licenses"><h1>التراخيص</h1><p class="sub">كل عميل ومعاه كود ترخيصه. الترخيص بيتعمل أوتوماتيك من تبويب المشاريع، وأي تجديد أو إيقاف هنا أو هناك بيتطبّق على الاتنين.</p>
+   <div class="strip"><div><small>إجمالي التراخيص</small><strong id="l1">0</strong></div><div><small>شغّالة</small><strong id="l2">0</strong></div><div><small>خلصت أو قربت تخلص</small><strong id="l3">0</strong></div><div><small>لسه ما اتفتحتش</small><strong id="l4">0</strong></div></div>
+   <div class="box"><div class="field" style="margin-bottom:16px"><input id="lq" placeholder="ابحث بالعميل أو البرنامج أو الكود أو الرقم" aria-label="بحث"></div><div class="table-wrap"><table class="table"><thead><tr><th>العميل</th><th>البرنامج والدفع</th><th>الاشتراك</th><th>الحالة</th><th>كود الترخيص</th><th>إجراءات</th></tr></thead><tbody id="lt"></tbody></table></div></div>
+  </section>
+ </div>
+</main>
+<dialog id="ed"><form id="ef" class="form-grid"><h3 class="full" style="margin:0">تعديل العميل</h3>
+ <div class="field"><label>اسم العميل</label><input name="customer" required></div>
+ <div class="field"><label>رقم الواتس</label><input name="phone" dir="ltr"></div>
+ <div class="field"><label>كلمة سر الصفحة</label><input name="pass" required dir="ltr"></div>
+ <div class="field"><label>نوع الدفع</label><select name="plan"><option value="monthly">اشتراك شهري</option><option value="yearly">اشتراك سنوي</option><option value="once">شراء كامل (مرة واحدة)</option></select></div>
+ <div class="field"><label>السعر (ج.م)</label><input name="price" type="number" min="0" required></div>
+ <div class="field"><label>تاريخ انتهاء الاشتراك</label><input name="end" type="date" dir="ltr"></div>
+ <label class="check full"><input type="checkbox" name="active"> الوصول مفتوح (شيل العلامة علشان تخفي البرنامج عنه)</label>
+ <p class="hint full">اللي تحت بتاع المشروع نفسه، وأي تعديل فيه بيظهر لكل عملاء المشروع.</p>
+ <div class="field"><label>اسم المشروع</label><input name="pname" required></div>
+ <div class="field"><label>القسم</label><input name="category" list="cats" required></div>
+ <div class="field"><label>وصف</label><input name="desc"></div>
+ <div class="field"><label>رابط التحميل</label><input name="plink" type="url" dir="ltr"></div>
+ <div class="field full"><label>استبدل ملف البرنامج (اختياري)</label><input name="file" type="file"></div>
+ <div class="full acts"><button class="btn" type="submit">حفظ التعديل</button><button class="btn ghost" type="button" id="ec">إلغاء</button></div>
+</form></dialog>
+<script>
+const $=id=>document.getElementById(id);
+const toast=t=>{const e=document.createElement('div');e.className='toast';e.textContent=t;document.body.append(e);setTimeout(()=>e.remove(),2400)};
+const okLink=l=>!l||/^https?:\/\//i.test(l);
+const DAY=864e5,today=()=>{const d=new Date();return new Date(d-d.getTimezoneOffset()*6e4).toISOString().slice(0,10)},ms=s=>Date.parse(s+'T00:00:00Z'),left=s=>Math.round((ms(s)-ms(today()))/DAY);
+function addP(from,plan){if(plan=='once')return '';const d=new Date(ms(from||today()));plan=='monthly'?d.setUTCMonth(d.getUTCMonth()+1):d.setUTCFullYear(d.getUTCFullYear()+1);return d.toISOString().slice(0,10)}
+let L=[];
+const waUrl=(n,t)=>{n=String(n||'').replace(/\D/g,'');if(n.startsWith('00'))n=n.slice(2);else if(n.startsWith('0'))n='20'+n.slice(1);return 'https://wa.me/'+n+'?text='+encodeURIComponent(t)};
+const link=c=>new URL('customer.html?id='+c.code,location.href).href;
+const exp=c=>c.end_date&&left(c.end_date)<0;
+const days=c=>{if(!c.end_date)return '<span class="tag">بدون انتهاء</span>';const d=left(c.end_date);return d<0?`<span class="tag bad">انتهى من ${-d} يوم</span>`:`<span class="tag ${d<=7?'warn':''}">باقي ${d} يوم</span>`};
+const acc=c=>!c.active?'<span class="tag bad">موقوف</span>':exp(c)?'<span class="tag bad">منتهي</span>':'<span class="tag">مفتوح</span>';
+let P=[],C=[];
+const genCode=()=>{const A='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<10;i++)s+=A[Math.floor(Math.random()*A.length)];return s};
+const licOf=c=>{const p=P.find(x=>x.id==c.project_id);return p?L.find(l=>l.product==p.name&&l.customer_name==c.customer_name):undefined};
+const ordOf=l=>C.find(c=>{const p=P.find(x=>x.id==c.project_id);return p&&p.name==l.product&&c.customer_name==l.customer_name});
+const licCell=c=>{const l=licOf(c);return l?`<span class="pw">${esc(l.code)}</span> <button class="mini" data-copy="${esc(l.code)}">نسخ</button>`:`<button class="mini" data-a="mklic" data-id="${c.id}">إنشاء ترخيص</button>`};
+async function syncLic(c,patch){const l=licOf(c);if(!l)return null;const r=await sb.from('licenses').update(patch).eq('id',l.id);return r.error||null}
+async function syncOrd(l,patch){const o=ordOf(l);if(!o)return null;const r=await sb.from('orders').update(patch).eq('id',o.id);return r.error||null}
+function route(){const h=location.hash.slice(1),v=['projects','licenses'].includes(h)?h:'overview';
+ document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id=='v-'+v));
+ document.querySelectorAll('.side a').forEach(a=>a.classList.toggle('on',a.dataset.v==v))}
+addEventListener('hashchange',route);
+const row=c=>{const p=P.find(x=>x.id==c.project_id)||{};return `<td>${esc(c.customer_name)}</td><td>${esc(p.name||'(محذوف)')}</td><td>${esc(p.category||'-')}</td><td><span class="tag">${PLANS[c.plan]}</span></td><td>${Number(c.price).toLocaleString('en')}</td>`};
+function render(){
+ $('s1').textContent=P.length;$('s2').textContent=C.length;
+ $('s3').textContent=C.filter(c=>c.plan!='once'&&c.active&&!exp(c)).length;
+ $('s4').textContent=C.reduce((a,c)=>a+Number(c.price),0).toLocaleString('en')+' ج.م';
+ $('cats').innerHTML=[...new Set([...DEFAULT_CATS.map(c=>c[0]),...P.map(p=>p.category)])].map(c=>`<option value="${esc(c)}">`).join('');
+ $('pnames').innerHTML=P.map(p=>`<option value="${esc(p.name)}">`).join('');
+ $('ot').innerHTML=C.slice(-5).reverse().map(c=>`<tr>${row(c)}</tr>`).join('')||'<tr><td colspan="5">لسه مفيش عملاء.</td></tr>';
+ $('al').innerHTML=C.filter(c=>c.end_date&&left(c.end_date)<=7).sort((a,b)=>a.end_date<b.end_date?-1:1).map(c=>{const p=P.find(x=>x.id==c.project_id)||{},d=left(c.end_date);
+  const t=`أهلاً ${c.customer_name}، اشتراكك في ${p.name} ${d<0?'انتهى':'هينتهي بعد '+d+' يوم'}. تحب تجدد؟`;
+  return `<div class="al"><span>${esc(c.customer_name)} - ${esc(p.name||'')}</span>${days(c)}<span class="acts">${c.phone?`<a class="wa" href="${waUrl(c.phone,t)}" target="_blank">واتساب</a>`:''}<button class="mini" data-a="renew" data-id="${c.id}">تجديد</button></span></div>`}).join('')||'<p class="hint">مفيش اشتراكات قربت تخلص.</p>';
+ $('ct').innerHTML=C.map(c=>{const p=P.find(x=>x.id==c.project_id)||{},u=link(c),id=`data-id="${c.id}"`,lc=licOf(c);
+  const m1=`أهلاً ${c.customer_name}، بخصوص برنامج ${p.name}.`,m2=`أهلاً ${c.customer_name}، دي صفحة برنامجك ${p.name}:\n${u}\nكلمة السر: ${c.password}${lc?'\nكود تفعيل البرنامج: '+lc.code:''}`;
+  return `<tr>${row(c)}<td dir="ltr">${esc(c.phone||'-')}</td><td>${days(c)}</td><td>${acc(c)}</td><td title="${c.last_download?new Date(c.last_download).toLocaleString('ar-EG'):''}">${c.downloads||0}</td><td><span class="pw">${esc(c.password)}</span></td><td>${licCell(c)}</td><td class="ac"><div class="acts wrap">
+  <button class="mini" data-a="edit" ${id}>تعديل</button><button class="mini" data-a="tog" ${id}>${c.active?'إيقاف':'تفعيل'}</button><button class="mini" data-a="renew" ${id}>تجديد (شهر/سنة)</button><button class="mini" data-a="adddays" ${id}>إضافة أيام</button>
+  ${c.phone?`<a class="wa" href="${waUrl(c.phone,m1)}" target="_blank">واتساب</a><a class="wa" href="${waUrl(c.phone,m2)}" target="_blank">ابعت الرابط</a><button class="mini" data-copy="${esc(c.phone)}">نسخ الرقم</button>`:''}
+  <a href="${u}" target="_blank">فتح</a><button class="mini" data-copy="${u}">نسخ الرابط</button><button class="mini" data-copy="${esc(c.password)}">نسخ كلمة السر</button><a href="category.html?c=${encodeURIComponent(p.category||'')}" target="_blank">القسم</a><button class="mini del" data-dc="${c.id}">حذف</button></div></td></tr>`}).join('')||'<tr><td colspan="12">لسه مفيش مشاريع.</td></tr>';
+}
+async function load(){const[a,b]=await Promise.all([sb.from('projects').select('*').order('created_at'),sb.from('orders').select('*').order('created_at')]);
+ if(a.error||b.error){alert('تعذّر تحميل البيانات: '+(a.error||b.error).message+'\nلو الرسالة عن عمود ناقص، شغّل update.sql في Supabase.');return}P=a.data;C=b.data;render()}
+async function up(file){const path=crypto.randomUUID()+((file.name.match(/\.[A-Za-z0-9]{1,8}$/)||[''])[0]);
+ const{error}=await sb.storage.from('programs').upload(path,file,{contentType:file.type||'application/octet-stream'});if(error)throw error;return path}
+$('pf').onsubmit=async e=>{e.preventDefault();const form=e.target,btn=form.querySelector('[type=submit]'),fd=new FormData(form),file=fd.get('file'),g=k=>(fd.get(k)||'').toString().trim();
+ const link=g('link'),has=!!(file&&file.size);
+ if(!okLink(link)){alert('الرابط لازم يبدأ بـ https://');return}
+ let proj=P.find(p=>p.name.toLowerCase()==g('name').toLowerCase());
+ if(!has&&!link&&!(proj&&(proj.file_path||proj.link))){alert('ارفع ملف البرنامج أو حط رابط له.');return}
+ btn.disabled=true;btn.textContent='جاري الحفظ...';
+ try{
+  const rec={code:crypto.randomUUID().replace(/-/g,''),password:g('pass'),customer_name:g('customer'),plan:g('plan'),price:Number(g('price')),phone:g('phone'),start_date:today(),end_date:g('end')||addP(today(),g('plan'))||null,active:true,link:'',file_path:'',file_name:''};
+  if(!proj){const r={name:g('name'),category:g('category'),plan:rec.plan,price:rec.price,description:g('desc'),link,file_path:'',file_name:''};
+   if(has){r.file_path=await up(file);r.file_name=file.name}
+   const x=await sb.from('projects').insert(r).select().single();if(x.error)throw x.error;proj=x.data}
+  else if(has||link){rec.link=link;if(has){rec.file_path=await up(file);rec.file_name=file.name}}
+  rec.project_id=proj.id;const y=await sb.from('orders').insert(rec);if(y.error)throw y.error;
+  let licCode='',licErr='';
+  if(form.elements['mklic'].checked){
+   licCode=genCode();
+   const lr=await sb.from('licenses').insert({code:licCode,product:g('name'),customer_name:g('customer'),phone:g('phone'),plan:rec.plan,price:rec.price,end_date:rec.end_date,active:true});
+   if(lr.error){licErr=lr.error.message;licCode=''}
+  }
+  form.reset();await Promise.all([load(),loadL()]);toast('تم الحفظ. انسخ رابط العميل من الجدول');
+  if(licErr)alert('اتحفظ العميل، لكن الترخيص ماتعملش: '+licErr);
+  else if(licCode){try{await navigator.clipboard.writeText(licCode)}catch(e){}prompt('تم إنشاء الترخيص. الكود (اتنسخ تلقائياً):',licCode)}
+ }catch(err){alert('حصل خطأ: '+(err.message||err))}
+ finally{btn.disabled=false;btn.textContent='حفظ وإنشاء صفحة العميل'}};
+$('ec').onclick=()=>$('ed').close();
+$('ef').onsubmit=async e=>{e.preventDefault();const f=e.target,fd=new FormData(f),g=k=>(fd.get(k)||'').toString().trim(),btn=f.querySelector('[type=submit]'),o=C.find(x=>x.id==$('ed').dataset.id),p=P.find(x=>x.id==o.project_id),file=fd.get('file'),pl=g('plink'),lic=licOf(o);
+ if(!okLink(pl)){alert('الرابط لازم يبدأ بـ https://');return}
+ btn.disabled=true;
+ try{const pu={name:g('pname'),category:g('category'),description:g('desc'),link:pl};let old='';
+  if(file&&file.size){old=p.file_path;pu.file_path=await up(file);pu.file_name=file.name}
+  let r=await sb.from('projects').update(pu).eq('id',p.id);if(r.error)throw r.error;
+  r=await sb.from('orders').update({customer_name:g('customer'),phone:g('phone'),password:g('pass'),plan:g('plan'),price:Number(g('price')),end_date:g('end')||null,active:f.active.checked}).eq('id',o.id);if(r.error)throw r.error;
+  if(p.name!=g('pname')){r=await sb.from('licenses').update({product:g('pname')}).eq('product',p.name);if(r.error)throw r.error}
+  if(lic){r=await sb.from('licenses').update({customer_name:g('customer'),phone:g('phone'),plan:g('plan'),price:Number(g('price')),end_date:g('end')||null,active:f.active.checked}).eq('id',lic.id);if(r.error)throw r.error}
+  if(old)await sb.storage.from('programs').remove([old]);
+  $('ed').close();await Promise.all([load(),loadL()]);toast('تم التعديل');
+ }catch(err){alert('حصل خطأ: '+(err.message||err))}finally{btn.disabled=false}};
+document.addEventListener('click',async e=>{const t=e.target,a=t.dataset.a,c=C.find(x=>x.id==t.dataset.id);
+ if(a=='edit'&&c){const p=P.find(x=>x.id==c.project_id)||{},f=$('ef');$('ed').dataset.id=c.id;
+  Object.entries({customer:c.customer_name,phone:c.phone||'',pass:c.password,plan:c.plan,price:c.price,end:c.end_date||'',pname:p.name||'',category:p.category||'',desc:p.description||'',plink:p.link||''}).forEach(([k,v])=>f.elements[k].value=v);
+  f.active.checked=c.active;f.file.value='';$('ed').showModal()}
+ if(a=='tog'&&c){const r=await sb.from('orders').update({active:!c.active}).eq('id',c.id);if(r.error)return alert(r.error.message);const e2=await syncLic(c,{active:!c.active});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast(c.active?'تم إيقاف الوصول':'تم تفعيل الوصول')}
+ if(a=='renew'&&c){const n=addP(c.end_date&&left(c.end_date)>0?c.end_date:today(),c.plan);if(!n){alert('الشراء الكامل مالوش تجديد. لو عاوز تاريخ، من زرار تعديل.');return}
+  const r=await sb.from('orders').update({end_date:n,active:true}).eq('id',c.id);if(r.error)return alert(r.error.message);const e2=await syncLic(c,{end_date:n,active:true});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast('اتجدد لحد '+n)}
+ if(a=='adddays'&&c){const n=prompt('كام يوم تحب تضيف؟ (تقدر تكتب رقم سالب تقصّر بيه)','30');if(n===null)return;const days=parseInt(n,10);if(!Number.isFinite(days)){alert('اكتب رقم صحيح.');return}
+  const base=c.end_date&&left(c.end_date)>0?c.end_date:today();const nd=new Date(ms(base)+days*DAY).toISOString().slice(0,10);
+  const r=await sb.from('orders').update({end_date:nd,active:true}).eq('id',c.id);if(r.error)return alert(r.error.message);const e2=await syncLic(c,{end_date:nd,active:true});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast('بقى ينتهي في '+nd)}
+ if(t.dataset.dc){if(!confirm('حذف العميل ومشروعه وترخيصه؟ الصفحة هتتمسح عنده والبرنامج هيقف ومش هيقدر ينزّل تاني.'))return;const c=C.find(x=>x.id==t.dataset.dc);if(!c)return;
+  const files=[c.file_path].filter(Boolean);
+  {const l=licOf(c);if(l)await sb.from('licenses').delete().eq('id',l.id)}
+  await sb.from('orders').delete().eq('id',c.id);
+  if(!C.some(x=>x.id!=c.id&&x.project_id==c.project_id)){const p=P.find(x=>x.id==c.project_id);if(p&&p.file_path)files.push(p.file_path);await sb.from('projects').delete().eq('id',c.project_id)}
+  if(files.length)await sb.storage.from('programs').remove(files);await Promise.all([load(),loadL()])}
+ if(a=='mklic'&&c){const p=P.find(x=>x.id==c.project_id)||{},code=genCode();
+  const r=await sb.from('licenses').insert({code,product:p.name,customer_name:c.customer_name,phone:c.phone||'',plan:c.plan,price:c.price,end_date:c.end_date||null,active:c.active});
+  if(r.error)return alert(r.error.message);await loadL();try{await navigator.clipboard.writeText(code)}catch(e){}prompt('تم إنشاء الترخيص. الكود (اتنسخ):',code)}
+ if(t.dataset.gen){const A='abcdefghjkmnpqrstuvwxyz23456789';let p='';for(let i=0;i<8;i++)p+=A[Math.floor(Math.random()*A.length)];document.querySelector('#pf [name=pass]').value=p}
+ if(t.dataset.copy){try{await navigator.clipboard.writeText(t.dataset.copy);toast('تم النسخ')}catch(err){prompt('انسخ:',t.dataset.copy)}}
+});
+$('out').onclick=async()=>{await sb.auth.signOut();location.href='login.html'};
+function renderL(){
+ const q=($('lq').value||'').trim().toLowerCase();
+ const dead=l=>l.end_date&&left(l.end_date)<0;
+ const st=l=>!l.active?'<span class="tag bad">موقوف</span>':dead(l)?'<span class="tag bad">منتهي</span>':'<span class="tag">شغّال</span>';
+ $('l1').textContent=L.length;
+ $('l2').textContent=L.filter(l=>l.active&&!dead(l)).length;
+ $('l3').textContent=L.filter(l=>l.end_date&&left(l.end_date)<=7).length;
+ $('l4').textContent=L.filter(l=>!l.last_check).length;
+ const rows=L.filter(l=>!q||[l.customer_name,l.product,l.code,l.phone].some(v=>String(v||'').toLowerCase().includes(q)));
+ $('lt').innerHTML=rows.map(l=>{const wa=l.phone?`<a class="wa" href="${waUrl(l.phone,'أهلاً '+l.customer_name+'، كود تفعيل برنامج '+l.product+':\n'+l.code)}" target="_blank">ابعت الكود</a>`:'';
+  return `<tr><td><b>${esc(l.customer_name)}</b><br><small dir="ltr" style="color:var(--muted)">${esc(l.phone||'-')}</small></td><td>${esc(l.product)}<br><small style="color:var(--muted)">${PLANS[l.plan]} · ${Number(l.price).toLocaleString('en')} ج.م</small></td><td>${days({end_date:l.end_date})}</td><td>${st(l)}<br><small style="color:var(--muted)">${l.last_check?'آخر فحص '+new Date(l.last_check).toLocaleDateString('ar-EG'):'لسه ما اتفتحش'}</small></td><td><span class="pw">${esc(l.code)}</span></td><td class="ac"><div class="acts wrap" style="min-width:150px;max-width:190px"><button class="mini" data-copy="${esc(l.code)}">نسخ</button>${wa}<button class="mini" data-la="tog" data-lid="${l.id}">${l.active?'إيقاف':'تفعيل'}</button><button class="mini" data-la="renew" data-lid="${l.id}">تجديد</button><button class="mini" data-la="adddays" data-lid="${l.id}">+ أيام</button><button class="mini del" data-ld="${l.id}">حذف</button></div></td></tr>`}).join('')||`<tr><td colspan="6">${L.length?'مفيش نتيجة للبحث.':'لسه مفيش تراخيص. بتتعمل أوتوماتيك لما تضيف عميل من تبويب المشاريع.'}</td></tr>`;
+}
+async function loadL(){const r=await sb.from('licenses').select('*').order('created_at');if(r.error){alert('تعذّر تحميل التراخيص: '+r.error.message+'\nشغّل licenses.sql في Supabase.');return}L=r.data;renderL();render()}
+document.addEventListener('click',async e=>{const t=e.target,la=t.dataset.la,l=L.find(x=>x.id==t.dataset.lid);
+ if(la=='tog'&&l){const r=await sb.from('licenses').update({active:!l.active}).eq('id',l.id);if(r.error)return alert(r.error.message);const e2=await syncOrd(l,{active:!l.active});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast(l.active?'تم إيقاف الترخيص':'تم تفعيل الترخيص')}
+ if(la=='renew'&&l){const n=addP(l.end_date&&left(l.end_date)>0?l.end_date:today(),l.plan);if(!n){alert('الاشتراك الدائم مالوش تجديد.');return}const r=await sb.from('licenses').update({end_date:n,active:true}).eq('id',l.id);if(r.error)return alert(r.error.message);const e2=await syncOrd(l,{end_date:n,active:true});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast('اتجدد لحد '+n)}
+ if(la=='adddays'&&l){const n=prompt('كام يوم تحب تضيف؟ (تقدر تكتب رقم سالب تقصّر بيه)','30');if(n===null)return;const days=parseInt(n,10);if(!Number.isFinite(days)){alert('اكتب رقم صحيح.');return}
+  const base=l.end_date&&left(l.end_date)>0?l.end_date:today();const nd=new Date(ms(base)+days*DAY).toISOString().slice(0,10);
+  const r=await sb.from('licenses').update({end_date:nd,active:true}).eq('id',l.id);if(r.error)return alert(r.error.message);const e2=await syncOrd(l,{end_date:nd,active:true});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast('بقى ينتهي في '+nd)}
+ if(t.dataset.ld){if(!confirm('حذف الترخيص؟ البرنامج هيقف عند العميل.'))return;const r=await sb.from('licenses').delete().eq('id',t.dataset.ld);if(r.error)return alert(r.error.message);await loadL()}
+});
+$('lq').oninput=renderL;
+route();requireAdmin().then(ok=>ok&&Promise.all([load(),loadL()]));
+</script>
+</body></html>
