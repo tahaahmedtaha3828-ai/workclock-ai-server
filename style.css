@@ -130,3 +130,5 @@ dialog{background:var(--card);color:var(--text);border:0;border-radius:18px;padd
 .dlbar i.ind{width:35%;animation:slide 1.1s ease-in-out infinite alternate}
 @keyframes slide{from{margin-inline-start:0}to{margin-inline-start:65%}}
 .dltxt{margin:8px 0 0;font-size:14px;color:var(--muted);text-align:center}
+
+.catlink{color:var(--blue);font-weight:500}.catlink:hover{text-decoration:underline}

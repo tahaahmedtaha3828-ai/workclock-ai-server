@@ -4,7 +4,7 @@
 <body>
 <header><div class="container nav"><a class="logo" href="index.html">TahaSite</a><div class="acts"><a class="btn ghost" href="index.html">الصفحة الرئيسية</a><button class="btn ghost" id="out">خروج</button></div></div></header>
 <main class="container admin">
- <nav class="side"><a href="#overview" data-v="overview">نظرة عامة</a><a href="#projects" data-v="projects">المشاريع</a><a href="#licenses" data-v="licenses">التراخيص</a></nav>
+ <nav class="side"><a href="#overview" data-v="overview">نظرة عامة</a><a href="#projects" data-v="projects">المشاريع</a><a href="#licenses" data-v="licenses">التراخيص</a><a href="category.html">الأقسام</a></nav>
  <div>
   <section class="view" id="v-overview"><h1>نظرة عامة</h1><p class="sub">ملخص شغلك وآخر العملاء.</p>
    <div class="strip"><div><small>المشاريع</small><strong id="s1">0</strong></div><div><small>العملاء</small><strong id="s2">0</strong></div><div><small>الاشتراكات النشطة</small><strong id="s3">0</strong></div><div><small>إجمالي المبالغ</small><strong id="s4">0</strong></div></div>
@@ -47,6 +47,7 @@
  <div class="field"><label>تاريخ انتهاء الاشتراك</label><input name="end" type="date" dir="ltr"></div>
  <label class="check full"><input type="checkbox" name="active"> الوصول مفتوح (شيل العلامة علشان تخفي البرنامج عنه)</label>
  <p class="hint full">اللي تحت بتاع المشروع نفسه، وأي تعديل فيه بيظهر لكل عملاء المشروع.</p>
+ <label class="check full"><input type="checkbox" name="applyall"> طبّق تعديلات المشروع على كل عملائه (لو سيبتها فاضية، التعديل لهذا العميل بس)</label>
  <div class="field"><label>اسم المشروع</label><input name="pname" required></div>
  <div class="field"><label>القسم</label><input name="category" list="cats" required></div>
  <div class="field"><label>وصف</label><input name="desc"></div>
@@ -68,8 +69,11 @@ const days=c=>{if(!c.end_date)return '<span class="tag">بدون انتهاء</s
 const acc=c=>!c.active?'<span class="tag bad">موقوف</span>':exp(c)?'<span class="tag bad">منتهي</span>':'<span class="tag">مفتوح</span>';
 let P=[],C=[];
 const genCode=()=>{const A='abcdefghjkmnpqrstuvwxyz23456789';let s='';for(let i=0;i<10;i++)s+=A[Math.floor(Math.random()*A.length)];return s};
-const licOf=c=>{const p=P.find(x=>x.id==c.project_id);return p?L.find(l=>l.product==p.name&&l.customer_name==c.customer_name):undefined};
-const ordOf=l=>C.find(c=>{const p=P.find(x=>x.id==c.project_id);return p&&p.name==l.product&&c.customer_name==l.customer_name});
+const sameOrd=(c,l)=>{const p=P.find(x=>x.id==c.project_id);return p&&p.name==l.product&&c.customer_name==l.customer_name};
+const licOf=c=>{const d=L.find(l=>l.order_id==c.id);if(d)return d;
+ const m=L.filter(l=>!l.order_id&&sameOrd(c,l));return m.length==1&&C.filter(o=>sameOrd(o,m[0])).length==1?m[0]:undefined};
+const ordOf=l=>{if(l.order_id)return C.find(c=>c.id==l.order_id);
+ const m=C.filter(c=>sameOrd(c,l));return m.length==1?m[0]:undefined};
 const licCell=c=>{const l=licOf(c);return l?`<span class="pw">${esc(l.code)}</span> <button class="mini" data-copy="${esc(l.code)}">نسخ</button>`:`<button class="mini" data-a="mklic" data-id="${c.id}">إنشاء ترخيص</button>`};
 async function syncLic(c,patch){const l=licOf(c);if(!l)return null;const r=await sb.from('licenses').update(patch).eq('id',l.id);return r.error||null}
 async function syncOrd(l,patch){const o=ordOf(l);if(!o)return null;const r=await sb.from('orders').update(patch).eq('id',o.id);return r.error||null}
@@ -111,11 +115,11 @@ $('pf').onsubmit=async e=>{e.preventDefault();const form=e.target,btn=form.query
    if(has){r.file_path=await up(file);r.file_name=file.name}
    const x=await sb.from('projects').insert(r).select().single();if(x.error)throw x.error;proj=x.data}
   else if(has||link){rec.link=link;if(has){rec.file_path=await up(file);rec.file_name=file.name}}
-  rec.project_id=proj.id;const y=await sb.from('orders').insert(rec);if(y.error)throw y.error;
+  rec.project_id=proj.id;const y=await sb.from('orders').insert(rec).select().single();if(y.error)throw y.error;
   let licCode='',licErr='';
   if(form.elements['mklic'].checked){
    licCode=genCode();
-   const lr=await sb.from('licenses').insert({code:licCode,product:g('name'),customer_name:g('customer'),phone:g('phone'),plan:rec.plan,price:rec.price,end_date:rec.end_date,active:true});
+   const lr=await sb.from('licenses').insert({order_id:y.data.id,code:licCode,product:g('name'),customer_name:g('customer'),phone:g('phone'),plan:rec.plan,price:rec.price,end_date:rec.end_date,active:true});
    if(lr.error){licErr=lr.error.message;licCode=''}
   }
   form.reset();await Promise.all([load(),loadL()]);toast('تم الحفظ. انسخ رابط العميل من الجدول');
@@ -127,19 +131,30 @@ $('ec').onclick=()=>$('ed').close();
 $('ef').onsubmit=async e=>{e.preventDefault();const f=e.target,fd=new FormData(f),g=k=>(fd.get(k)||'').toString().trim(),btn=f.querySelector('[type=submit]'),o=C.find(x=>x.id==$('ed').dataset.id),p=P.find(x=>x.id==o.project_id),file=fd.get('file'),pl=g('plink'),lic=licOf(o);
  if(!okLink(pl)){alert('الرابط لازم يبدأ بـ https://');return}
  btn.disabled=true;
- try{const pu={name:g('pname'),category:g('category'),description:g('desc'),link:pl};let old='';
-  if(file&&file.size){old=p.file_path;pu.file_path=await up(file);pu.file_name=file.name}
-  let r=await sb.from('projects').update(pu).eq('id',p.id);if(r.error)throw r.error;
-  r=await sb.from('orders').update({customer_name:g('customer'),phone:g('phone'),password:g('pass'),plan:g('plan'),price:Number(g('price')),end_date:g('end')||null,active:f.active.checked}).eq('id',o.id);if(r.error)throw r.error;
-  if(p.name!=g('pname')){r=await sb.from('licenses').update({product:g('pname')}).eq('product',p.name);if(r.error)throw r.error}
-  if(lic){r=await sb.from('licenses').update({customer_name:g('customer'),phone:g('phone'),plan:g('plan'),price:Number(g('price')),end_date:g('end')||null,active:f.active.checked}).eq('id',lic.id);if(r.error)throw r.error}
+ try{const pu={name:g('pname'),category:g('category'),description:g('desc'),link:pl};let old='',pid=p.id;
+  const hasF=!!(file&&file.size),shared=C.some(x=>x.id!=o.id&&x.project_id==p.id),all=f.applyall.checked;
+  const changed=pu.name!=p.name||pu.category!=p.category||pu.description!=(p.description||'')||pu.link!=(p.link||'')||hasF;
+  if(hasF){pu.file_path=await up(file);pu.file_name=file.name}
+  if(shared&&!all&&changed){
+   const np={name:pu.name,category:pu.category,plan:g('plan'),price:Number(g('price')),description:pu.description,link:pu.link,file_path:pu.file_path??p.file_path??'',file_name:pu.file_name??p.file_name??''};
+   const x=await sb.from('projects').insert(np).select().single();if(x.error)throw x.error;pid=x.data.id;
+  }else{
+   if(hasF&&p.file_path&&!P.some(x=>x.id!=p.id&&x.file_path==p.file_path))old=p.file_path;
+   const r0=await sb.from('projects').update(pu).eq('id',p.id);if(r0.error)throw r0.error;
+  }
+  let r=await sb.from('orders').update({project_id:pid,customer_name:g('customer'),phone:g('phone'),password:g('pass'),plan:g('plan'),price:Number(g('price')),end_date:g('end')||null,active:f.active.checked}).eq('id',o.id);if(r.error)throw r.error;
+  if(p.name!=g('pname')){
+   if(shared&&all){r=await sb.from('licenses').update({product:g('pname')}).eq('product',p.name)}
+   else if(lic){r=await sb.from('licenses').update({product:g('pname')}).eq('id',lic.id)}
+   if(r.error)throw r.error}
+  if(lic){r=await sb.from('licenses').update({order_id:o.id,customer_name:g('customer'),phone:g('phone'),plan:g('plan'),price:Number(g('price')),end_date:g('end')||null,active:f.active.checked}).eq('id',lic.id);if(r.error)throw r.error}
   if(old)await sb.storage.from('programs').remove([old]);
   $('ed').close();await Promise.all([load(),loadL()]);toast('تم التعديل');
  }catch(err){alert('حصل خطأ: '+(err.message||err))}finally{btn.disabled=false}};
 document.addEventListener('click',async e=>{const t=e.target,a=t.dataset.a,c=C.find(x=>x.id==t.dataset.id);
  if(a=='edit'&&c){const p=P.find(x=>x.id==c.project_id)||{},f=$('ef');$('ed').dataset.id=c.id;
   Object.entries({customer:c.customer_name,phone:c.phone||'',pass:c.password,plan:c.plan,price:c.price,end:c.end_date||'',pname:p.name||'',category:p.category||'',desc:p.description||'',plink:p.link||''}).forEach(([k,v])=>f.elements[k].value=v);
-  f.active.checked=c.active;f.file.value='';$('ed').showModal()}
+  f.active.checked=c.active;f.applyall.checked=false;f.file.value='';$('ed').showModal()}
  if(a=='tog'&&c){const r=await sb.from('orders').update({active:!c.active}).eq('id',c.id);if(r.error)return alert(r.error.message);const e2=await syncLic(c,{active:!c.active});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast(c.active?'تم إيقاف الوصول':'تم تفعيل الوصول')}
  if(a=='renew'&&c){const n=addP(c.end_date&&left(c.end_date)>0?c.end_date:today(),c.plan);if(!n){alert('الشراء الكامل مالوش تجديد. لو عاوز تاريخ، من زرار تعديل.');return}
   const r=await sb.from('orders').update({end_date:n,active:true}).eq('id',c.id);if(r.error)return alert(r.error.message);const e2=await syncLic(c,{end_date:n,active:true});if(e2)return alert(e2.message);await Promise.all([load(),loadL()]);toast('اتجدد لحد '+n)}
@@ -150,10 +165,10 @@ document.addEventListener('click',async e=>{const t=e.target,a=t.dataset.a,c=C.f
   const files=[c.file_path].filter(Boolean);
   {const l=licOf(c);if(l)await sb.from('licenses').delete().eq('id',l.id)}
   await sb.from('orders').delete().eq('id',c.id);
-  if(!C.some(x=>x.id!=c.id&&x.project_id==c.project_id)){const p=P.find(x=>x.id==c.project_id);if(p&&p.file_path)files.push(p.file_path);await sb.from('projects').delete().eq('id',c.project_id)}
+  if(!C.some(x=>x.id!=c.id&&x.project_id==c.project_id)){const p=P.find(x=>x.id==c.project_id);if(p&&p.file_path&&!P.some(x=>x.id!=p.id&&x.file_path==p.file_path))files.push(p.file_path);await sb.from('projects').delete().eq('id',c.project_id)}
   if(files.length)await sb.storage.from('programs').remove(files);await Promise.all([load(),loadL()])}
  if(a=='mklic'&&c){const p=P.find(x=>x.id==c.project_id)||{},code=genCode();
-  const r=await sb.from('licenses').insert({code,product:p.name,customer_name:c.customer_name,phone:c.phone||'',plan:c.plan,price:c.price,end_date:c.end_date||null,active:c.active});
+  const r=await sb.from('licenses').insert({order_id:c.id,code,product:p.name,customer_name:c.customer_name,phone:c.phone||'',plan:c.plan,price:c.price,end_date:c.end_date||null,active:c.active});
   if(r.error)return alert(r.error.message);await loadL();try{await navigator.clipboard.writeText(code)}catch(e){}prompt('تم إنشاء الترخيص. الكود (اتنسخ):',code)}
  if(t.dataset.gen){const A='abcdefghjkmnpqrstuvwxyz23456789';let p='';for(let i=0;i<8;i++)p+=A[Math.floor(Math.random()*A.length)];document.querySelector('#pf [name=pass]').value=p}
  if(t.dataset.copy){try{await navigator.clipboard.writeText(t.dataset.copy);toast('تم النسخ')}catch(err){prompt('انسخ:',t.dataset.copy)}}

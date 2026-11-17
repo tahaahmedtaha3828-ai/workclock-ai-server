@@ -1,16 +1,27 @@
 <!doctype html>
 <html lang="ar" dir="rtl">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>القسم | TahaSite</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="config.js"></script><script src="store.js"></script></head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>الأقسام | TahaSite</title><link rel="stylesheet" href="style.css"><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script><script src="config.js"></script><script src="store.js"></script></head>
 <body>
 <header><div class="container nav"><a class="logo" href="index.html">TahaSite</a><a class="btn ghost" href="admin.html#projects">الإدارة</a></div></header>
-<main class="container"><div class="page-hero"><h1 id="t"></h1><p>البرامج في هذا القسم.</p></div><div class="list" id="list"></div></main>
+<main class="container"><div class="page-hero"><h1 id="t"></h1><p id="s"></p></div><div class="list" id="list"></div></main>
 <footer><div class="container footer-row"><span>© 2026 TahaSite</span></div></footer>
 <script>
 (async()=>{if(!await requireAdmin())return;
- const cat=new URLSearchParams(location.search).get('c')||'';
- document.getElementById('t').textContent=cat;document.title=cat+' | TahaSite';
- const{data}=await sb.from('projects').select('name,description').eq('category',cat);
- document.getElementById('list').innerHTML=(data||[]).map(p=>`<div class="list-item"><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p></div>`).join('')||'<p class="empty">مفيش برامج في القسم ده لسه.</p>';
+ const cat=(new URLSearchParams(location.search).get('c')||'').trim(),$=id=>document.getElementById(id);
+ const[a,b]=await Promise.all([sb.from('projects').select('id,name,description,category').order('created_at'),sb.from('orders').select('project_id,customer_name')]);
+ if(a.error||b.error){$('list').innerHTML='<p class="empty">تعذّر تحميل البيانات.</p>';return}
+ const P=a.data||[],O=b.data||[];
+ if(!cat){
+  document.title='الأقسام | TahaSite';$('t').textContent='الأقسام';$('s').textContent='دوس على أي قسم تشوف كل مشاريعه.';
+  const names=[...new Set(P.map(p=>p.category))].filter(Boolean);
+  $('list').innerHTML=names.map(n=>{const ps=P.filter(p=>p.category==n),cu=O.filter(o=>ps.some(p=>p.id==o.project_id)).length;
+   return `<a class="list-item" href="category.html?c=${encodeURIComponent(n)}"><h3>${esc(n)}</h3><p>${ps.length} مشروع · ${cu} عميل</p></a>`}).join('')||'<p class="empty">مفيش أقسام لسه.</p>';
+  return}
+ document.title=cat+' | TahaSite';$('t').textContent=cat;
+ $('s').innerHTML='المشاريع في هذا القسم. <a href="category.html" style="color:var(--blue)">← كل الأقسام</a>';
+ const ps=P.filter(p=>p.category==cat);
+ $('list').innerHTML=ps.map(p=>{const cu=O.filter(o=>o.project_id==p.id).map(o=>esc(o.customer_name));
+  return `<div class="list-item"><h3>${esc(p.name)}</h3><p>${esc(p.description)}</p><p>${cu.length?'العملاء: '+cu.join('، '):'مفيش عملاء لسه.'}</p></div>`}).join('')||'<p class="empty">مفيش برامج في القسم ده لسه.</p>';
 })();
 </script>
 </body></html>
